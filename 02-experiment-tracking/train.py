@@ -7,12 +7,38 @@ import mlflow.sklearn
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error
 
+from pyngrok import ngrok
+from getpass import getpass
+
+
 # Change directory to the location of the script
-os.chdir("/workspaces/MLOps_2024_Zoomcamp/02-experiment-tracking")
+# os.chdir("train.py")
 
 # Set MLflow tracking URI and experiment
 # mlflow.set_tracking_uri("sqlite:///mlflow.db")
-mlflow.set_tracking_uri("http://127.0.0.1:5000")
+# mlflow.set_tracking_uri("http://127.0.0.1:5000")
+
+# get_ipython().system_raw("mlflow ui --port 5000 &")
+
+
+
+
+# Terminate open tunnels if exist
+ngrok.kill()
+
+
+# Setting the authtoken (optional)
+# Get your authtoken from https://dashboard.ngrok.com/auth
+NGROK_AUTH_TOKEN = getpass('Enter the ngrok authtoken: ')
+ngrok.set_auth_token(NGROK_AUTH_TOKEN)
+
+# Open an HTTPs tunnel on port 5000 for http://localhost:5000
+ngrok_tunnel = ngrok.connect(addr="5000", proto="http", bind_tls=True)
+print("MLflow Tracking UI:", ngrok_tunnel.public_url)
+
+
+
+
 mlflow.set_experiment("mlops-zoomcamp-week-2")
 
 
@@ -24,7 +50,7 @@ def load_pickle(filename: str):
 @click.command()
 @click.option(
     "--data_path",
-    default="./output",
+    default="output",
     help="Location where the processed NYC taxi trip data was saved",
 )
 def run_train(data_path: str):
